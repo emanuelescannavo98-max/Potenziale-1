@@ -260,12 +260,16 @@ function addTask(event) {
     return;
   }
 
-  state.tasks.push({
-    id: uid(),
-    title: title,
-    date: today(),
-    completed: false
-  });
+state.tasks.push({
+  id: uid(),
+  title: title,
+  date: today(),
+  completed: false,
+  area: "Personale",
+  priority: "Media",
+  duration: 30,
+  xp: 10
+});
 
   save();
   render();
