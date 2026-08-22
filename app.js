@@ -332,7 +332,13 @@ function toggleTask(id) {
     return;
   }
 
-  task.completed = !task.completed;
+  if (!task.completed) {
+    task.completed = true;
+    state.xp += task.xp || 10;
+  } else {
+    task.completed = false;
+    state.xp = Math.max(0, state.xp - (task.xp || 10));
+  }
 
   save();
   render();
