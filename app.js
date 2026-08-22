@@ -1,6 +1,7 @@
 const KEY = "potenziale_v1";
 
 const defaultState = {
+  xp: 0,
   tasks: [],
   money: {
     income: 0,
