@@ -355,6 +355,9 @@ function progressPage() {
   const total = tasksToday().length;
   const completed = completedToday().length;
   const percent = progressPercent();
+  const xp = state.xp || 0;
+const level = Math.floor(xp / 100) + 1;
+const xpInLevel = xp % 100;
 
   return `
     <section class="page">
@@ -375,6 +378,24 @@ function progressPage() {
 
         <p>${completed} di ${total} task completate.</p>
       </section>
+      <section class="card">
+  <h3>Livello ${level}</h3>
+
+  <p>
+    ⭐ ${xpInLevel} / 100 XP
+  </p>
+
+  <div class="progress-bar">
+    <div
+      class="progress-fill"
+      style="width:${xpInLevel}%"
+    ></div>
+  </div>
+
+  <p>
+    ${100 - xpInLevel} XP al prossimo livello
+  </p>
+</section>
 
       <section class="card">
         <h3>Obiettivo</h3>
