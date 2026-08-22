@@ -6,6 +6,7 @@ const defaultState = {
   money: {
     income: 0,
     expense: 0
+    movements: []
   },
   xp:0,
   page: "home"
