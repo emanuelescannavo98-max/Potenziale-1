@@ -20,12 +20,30 @@
 
     <main id="content"></main>
 
-    <nav class="bottom-nav" aria-label="Navigazione">
-      <button data-page="home" class="nav-btn active"><span>⌂</span><small>Home</small></button>
-      <button data-page="tasks" class="nav-btn"><span>✓</span><small>Task</small></button>
-      <button data-page="progress" class="nav-btn"><span>▥</span><small>Progressi</small></button>
-      <button data-page="money" class="nav-btn"><span>€</span><small>Economia</small></button>
-    </nav>
+    <nav class="bottom-nav">
+
+  <button class="nav-btn" onclick="navigate('home')">
+    🏠
+    <span>Home</span>
+  </button>
+
+  <button class="nav-btn" onclick="navigate('tasks')">
+    ✓
+    <span>Task</span>
+  </button>
+
+  <button class="nav-btn" onclick="navigate('progress')">
+    📊
+    <span>Progressi</span>
+  </button>
+
+  <button class="nav-btn" onclick="navigate('money')">
+    €
+    <span>Economia</span>
+  </button>
+
+</nav>
+  
   </div>
   <script src="app.js"></script>
 </body>
