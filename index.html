@@ -1,50 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#101828">
-  <link rel="manifest" href="manifest.json">
-  <title>POTENZIALE</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4f5f7">
+<title>POTENZIALE</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
-    <header class="top">
-      <div>
-        <div class="eyebrow">POTENZIALE 0.2</div>
-        <h1>POTENZIALE</h1>
-        <p>Il tuo sistema personale.</p>
-      </div>
-    </header>
-
-    <main id="content"></main>
-
-    <nav class="bottom-nav">
-
-  <button class="nav-btn" onclick="navigate('home')">
-    🏠
-    <span>Home</span>
-  </button>
-
-  <button class="nav-btn" onclick="navigate('tasks')">
-    ✓
-    <span>Task</span>
-  </button>
-
-  <button class="nav-btn" onclick="navigate('progress')">
-    📊
-    <span>Progressi</span>
-  </button>
-
-  <button class="nav-btn" onclick="navigate('money')">
-    €
-    <span>Economia</span>
-  </button>
-
+<main id="app">
+<header class="topbar">
+<div><div class="eyebrow">POTENZIALE 1.0</div><h1>POTENZIALE</h1><p>Il tuo sistema personale.</p></div>
+</header>
+<div id="content"></div>
+<nav class="bottom-nav" aria-label="Navigazione">
+<button class="nav-btn active" data-page="home"><span>🏠</span><b>Home</b></button>
+<button class="nav-btn" data-page="tasks"><span>✓</span><b>Task</b></button>
+<button class="nav-btn" data-page="progress"><span>📊</span><b>Progressi</b></button>
+<button class="nav-btn" data-page="money"><span>€</span><b>Economia</b></button>
 </nav>
-  
-  </div>
-  <script src="app.js"></script>
+</main>
+<script src="app.js"></script>
 </body>
 </html>
