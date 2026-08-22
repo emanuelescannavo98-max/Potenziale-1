@@ -487,11 +487,21 @@ function addMoney(event) {
   }
 
   state.money[type] =
-    Number(state.money[type] || 0) + amount;
+  Number(state.money[type] || 0) + amount;
 
-  save();
-  render();
+if (!Array.isArray(state.money.movements)) {
+  state.money.movements = [];
 }
+
+state.money.movements.unshift({
+  id: uid(),
+  amount: amount,
+  type: type,
+  date: today()
+});
+
+save();
+render();
 
 document.addEventListener("DOMContentLoaded", () => {
   render();
