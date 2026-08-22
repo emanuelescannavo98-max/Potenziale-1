@@ -127,7 +127,12 @@ function updateNavigation() {
   });
 }
 
-function homePage() {
+function homePage() {return `
+  <section class="page">
+    <h2>TEST HOME</h2>
+    <p>Se vedi questo testo, il problema è dentro homePage().</p>
+  </section>
+`;
   const tasks = tasksToday();
   const completed = completedToday();
   const percent = progressPercent();
