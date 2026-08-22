@@ -1,68 +1,146 @@
-const APP_VERSION="0.1.0";
-const KEY="potenziale_foundation_v01";
-let deferredPrompt=null;
-let current="home";
+const KEY="potenziale_v02";
+const today=()=>new Date().toISOString().slice(0,10);
+const fmtDate=d=>new Date(d+"T12:00:00").toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 
-const defaults={
-  version:APP_VERSION,
+const defaultState={
   tasks:[],
-  completed:0,
-  income:0,
-  expenses:0,
-  savingsGoal:0,
-  history:[]
+  money:{income:0,expense:0},
+  page:"home"
 };
 
-function load(){
-  try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||"{}")}}
-  catch{return {...defaults}}
-}
 let state=load();
-function save(){state.version=APP_VERSION;localStorage.setItem(KEY,JSON.stringify(state))}
-function today(){return new Date().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"})}
-function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function load(){
+  try{return {...defaultState,...JSON.parse(localStorage.getItem(KEY)||"{}")}}
+  catch{return {...defaultState}}
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function tasksToday(){return state.tasks.filter(t=>t.date===today())}
+function doneToday(){return tasksToday().filter(t=>t.done).length}
+function pct(){const a=tasksToday();return a.length?Math.round(doneToday()/a.length*100):0}
+
+function nav(){
+  document.querySelectorAll(".nav-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.page===state.page);
+    b.onclick=()=>{state.page=b.dataset.page;save();render()}
+  })
+}
 
 function render(){
-  document.querySelectorAll("[data-screen]").forEach(b=>b.classList.toggle("active",b.dataset.screen===current));
-  const screen=document.getElementById("screen");
-  if(current==="home")screen.innerHTML=home();
-  if(current==="tasks")screen.innerHTML=tasks();
-  if(current==="progress")screen.innerHTML=progress();
-  if(current==="money")screen.innerHTML=money();
+  nav();
+  const c=document.getElementById("content");
+  if(state.page==="home") c.innerHTML=home();
+  if(state.page==="tasks") c.innerHTML=tasksPage();
+  if(state.page==="progress") c.innerHTML=progressPage();
+  if(state.page==="money") c.innerHTML=moneyPage();
   bind();
 }
+
 function home(){
- const total=state.tasks.length, done=state.tasks.filter(t=>t.done).length, pct=total?Math.round(done/total*100):0;
- return `<section class="card hero"><div class="eyebrow">OGGI</div><h2>${today()}</h2><p>Un passo alla volta. Costruiamo il sistema prima di renderlo complesso.</p></section>
- <section class="card"><div class="row"><h2>🎯 Oggi</h2><b>${done}/${total}</b></div><div class="progress"><i style="width:${pct}%"></i></div><p>${pct}% completato</p>${total?state.tasks.map(taskHTML).join(""):`<div class="empty">Nessuna task. Vai in <b>Task</b> per crearne una.</div>`}</section>
- <section class="card"><div class="grid"><div class="metric"><b>${done}</b><span>Completate oggi</span></div><div class="metric"><b>${Math.max(0,state.income-state.expenses).toFixed(0)} €</b><span>Saldo mensile</span></div></div></section>`
+  const a=tasksToday();
+  return `<section class="hero">
+    <div class="eyebrow">OGGI</div>
+    <div class="date">${fmtDate(today())}</div>
+    <p>Un passo alla volta. Costruiamo il sistema prima di renderlo complesso.</p>
+  </section>
+  <section class="card">
+    <h2>🎯 Oggi <span style="float:right">${doneToday()}/${a.length}</span></h2>
+    <div class="progress"><i style="width:${pct()}%"></i></div>
+    <p style="color:#667085">${pct()}% completato</p>
+    ${a.length?a.slice(0,4).map(taskMini).join(""):`<div class="empty">Nessuna task per oggi.<br>Vai in <b>Task</b> per crearne una.</div>`}
+  </section>
+  <section class="stats">
+    <div class="stat"><strong>${doneToday()}</strong><span>Completate oggi</span></div>
+    <div class="stat"><strong>${moneyBalance()} €</strong><span>Saldo</span></div>
+  </section>`;
 }
-function taskHTML(t){return `<div class="task"><button class="check ${t.done?"done":""}" data-id="${esc(t.id)}">${t.done?"✓":""}</button><div><div class="task-title">${esc(t.title)}</div><small>${esc(t.category||"Generale")}</small></div></div>`}
-function tasks(){
- return `<section class="card"><div class="row"><h2>✓ Task</h2><button class="primary" id="add">Aggiungi</button></div><p>Questa è la base del motore quotidiano.</p>${state.tasks.length?state.tasks.map(taskHTML).join(""):`<div class="empty">Ancora nessuna task.</div>`}</section>
- <section class="card"><h3>Nuova task</h3><div class="field"><label>Descrizione</label><input id="title" placeholder="Es. 20 minuti di studio"></div><div class="field"><label>Area</label><input id="category" placeholder="Es. Carriera"></div><button class="primary" id="create">Salva task</button></section>`
+
+function taskMini(t){
+ return `<div class="task-row ${t.done?"done":""}">
+   <button class="check ${t.done?"done":""}" data-toggle="${t.id}">${t.done?"✓":""}</button>
+   <div class="task-main"><div class="task-title">${esc(t.title)}</div><div class="task-meta">${esc(t.category)} · ${esc(t.priority)}</div></div>
+ </div>`
 }
-function progress(){
- const done=state.tasks.filter(t=>t.done).length,total=state.tasks.length,pct=total?Math.round(done/total*100):0;
- return `<section class="card"><h2>◒ Progressi</h2><div class="grid"><div class="metric"><b>${pct}%</b><span>Completamento</span></div><div class="metric"><b>${done}</b><span>Task completate</span></div></div></section>
- <section class="card"><h3>Progressione</h3><div class="progress"><i style="width:${pct}%"></i></div><p>${done} di ${total} task completate.</p></section>`
+
+function tasksPage(){
+ return `<section class="card">
+   <h2>☑️ Task</h2>
+   <form id="taskForm" class="form">
+     <input name="title" placeholder="Cosa vuoi fare?" maxlength="80" required>
+     <div class="form-row">
+       <select name="category"><option>Personale</option><option>Corpo</option><option>Crescita</option><option>Lavoro</option><option>Economia</option><option>Casa</option></select>
+       <select name="priority"><option>Media</option><option>Alta</option><option>Bassa</option></select>
+     </div>
+     <button class="primary">+ Aggiungi task</button>
+   </form>
+ </section>
+ <section class="card">
+   <h2>Oggi <span style="float:right">${doneToday()}/${tasksToday().length}</span></h2>
+   ${tasksToday().length?tasksToday().map(taskFull).join(""):`<div class="empty">Nessuna task ancora.</div>`}
+ </section>
+ <section class="card">
+   <h2>Prossime</h2>
+   ${state.tasks.filter(t=>t.date>today()).length?state.tasks.filter(t=>t.date>today()).map(taskFull).join(""):`<div class="empty">Nessuna task futura.</div>`}
+ </section>`;
 }
-function money(){
- const balance=Number(state.income)-Number(state.expenses),goal=Number(state.savingsGoal)||0,p=goal?Math.max(0,Math.min(100,balance/goal*100)):0;
- return `<section class="card"><h2>€ Economia</h2><p>La base del modulo economico di POTENZIALE.</p></section>
- <section class="card"><div class="field"><label>Entrate mensili (€)</label><input id="income" type="number" value="${state.income}"></div>
- <div class="field"><label>Spese mensili (€)</label><input id="expenses" type="number" value="${state.expenses}"></div>
- <div class="field"><label>Obiettivo risparmio (€)</label><input id="goal" type="number" value="${state.savingsGoal}"></div>
- <button class="primary" id="saveMoney">Salva</button></section>
- <section class="card"><div class="metric"><b>${balance.toFixed(2)} €</b><span>Saldo mensile</span></div><br><div class="progress"><i style="width:${p}%"></i></div><p>${Math.round(p)}% dell'obiettivo</p></section>`
+
+function taskFull(t){
+ return `<div class="task-row ${t.done?"done":""}">
+   <button class="check ${t.done?"done":""}" data-toggle="${t.id}">${t.done?"✓":""}</button>
+   <div class="task-main"><div class="task-title">${esc(t.title)}</div><div class="task-meta">${esc(t.category)} · ${fmtDate(t.date)}</div></div>
+   <span class="priority">${esc(t.priority)}</span>
+   <button class="icon-btn" data-delete="${t.id}" aria-label="Elimina">×</button>
+ </div>`;
 }
+
+function progressPage(){
+ const total=state.tasks.length, done=state.tasks.filter(t=>t.done).length;
+ const allPct=total?Math.round(done/total*100):0;
+ return `<section class="hero"><div class="eyebrow">PROGRESSI</div><div class="date">${allPct}/100</div><p>Il punteggio cresce quando trasformi le intenzioni in azioni.</p></section>
+ <section class="stats">
+   <div class="stat"><strong>${done}</strong><span>Task completate</span></div>
+   <div class="stat"><strong>${total}</strong><span>Task totali</span></div>
+ </section>
+ <section class="card"><h2>Avanzamento</h2><div class="progress"><i style="width:${allPct}%"></i></div><p style="color:#667085">${allPct}% delle task completate</p></section>`;
+}
+
+function moneyBalance(){return Math.round((Number(state.money.income)||0)-(Number(state.money.expense)||0))}
+
+function moneyPage(){
+ return `<section class="card"><h2>💶 Economia personale</h2>
+   <div class="stats">
+     <div class="stat"><strong>${Number(state.money.income||0).toFixed(2)} €</strong><span>Entrate</span></div>
+     <div class="stat"><strong>${Number(state.money.expense||0).toFixed(2)} €</strong><span>Uscite</span></div>
+   </div>
+   <div class="stat" style="margin-top:12px"><strong>${moneyBalance()} €</strong><span>Saldo</span></div>
+ </section>
+ <section class="card"><h2>Registra movimento</h2>
+   <form id="moneyForm" class="form">
+     <input name="amount" type="number" step="0.01" min="0" placeholder="Importo (€)" required>
+     <select name="type"><option value="income">Entrata</option><option value="expense">Uscita</option></select>
+     <button class="primary">Salva movimento</button>
+   </form>
+ </section>`;
+}
+
 function bind(){
- document.querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>{const t=state.tasks.find(x=>x.id===b.dataset.id);if(t){t.done=!t.done;save();render()}});
- const create=document.getElementById("create"); if(create)create.onclick=()=>{const title=document.getElementById("title").value.trim();if(!title)return;state.tasks.push({id:crypto.randomUUID(),title,category:document.getElementById("category").value.trim()||"Generale",done:false});save();render();};
- const saveMoney=document.getElementById("saveMoney");if(saveMoney)saveMoney.onclick=()=>{state.income=Number(document.getElementById("income").value)||0;state.expenses=Number(document.getElementById("expenses").value)||0;state.savingsGoal=Number(document.getElementById("goal").value)||0;save();render()};
- const add=document.getElementById("add");if(add)document.getElementById("title")?.focus();
+ document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{
+   const t=state.tasks.find(x=>x.id===b.dataset.toggle); if(t){t.done=!t.done;save();render()}
+ });
+ document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{
+   state.tasks=state.tasks.filter(x=>x.id!==b.dataset.delete);save();render()
+ });
+ const tf=document.getElementById("taskForm");
+ if(tf) tf.onsubmit=e=>{
+   e.preventDefault();const f=new FormData(tf);
+   state.tasks.push({id:uid(),title:f.get("title").trim(),category:f.get("category"),priority:f.get("priority"),date:today(),done:false});
+   save();render()
+ };
+ const mf=document.getElementById("moneyForm");
+ if(mf) mf.onsubmit=e=>{
+   e.preventDefault();const f=new FormData(mf),n=Number(f.get("amount"));
+   if(n>0){if(f.get("type")==="income")state.money.income+=n;else state.money.expense+=n;save();render()}
+ };
 }
-document.querySelectorAll("[data-screen]").forEach(b=>b.onclick=()=>{current=b.dataset.screen;render()});
-document.getElementById("install").onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();deferredPrompt=null}else alert("Nel menu del browser scegli 'Installa app'.")};
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredPrompt=e;document.getElementById("install").hidden=false});
-window.addEventListener("load",()=>{if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});render()});
+render();
