@@ -444,7 +444,33 @@ function moneyPage() {
           ${balance.toFixed(2)} €
         </div>
       </section>
+      
+<section class="card">
+  <h3>Storico movimenti</h3>
 
+  ${
+    (state.money.movements || []).length === 0
+      ? `<p>Nessun movimento registrato.</p>`
+      : `
+        <div class="movement-list">
+          ${(state.money.movements || []).map(movement => `
+            <div class="movement-item">
+              <strong>
+                ${movement.type === "income" ? "+" : "-"}
+                ${Number(movement.amount).toFixed(2)} €
+              </strong>
+
+              <span>
+                ${movement.type === "income" ? "Entrata" : "Uscita"}
+              </span>
+
+              <small>${movement.date}</small>
+            </div>
+          `).join("")}
+        </div>
+      `
+  }
+</section>
       <section class="card">
         <h3>Aggiungi movimento</h3>
 
