@@ -6,6 +6,7 @@ const defaultState = {
     income: 0,
     expense: 0
   },
+  xp:0,
   page: "home"
 };
 
