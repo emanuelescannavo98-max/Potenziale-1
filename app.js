@@ -199,18 +199,50 @@ function tasksPage() {
       </div>
 
       <form class="task-form" onsubmit="addTask(event)">
-        <input
-          id="taskInput"
-          type="text"
-          placeholder="Es. Allenamento"
-          autocomplete="off"
-          required
-        >
 
-        <button type="submit">
-          + Aggiungi
-        </button>
-      </form>
+  <input
+    id="taskInput"
+    type="text"
+    placeholder="Es. Allenamento"
+    autocomplete="off"
+    required
+  >
+
+  <select id="taskArea">
+    <option value="Personale">Personale</option>
+    <option value="Lavoro">Lavoro</option>
+    <option value="Salute">Salute</option>
+    <option value="Finanze">Finanze</option>
+    <option value="Formazione">Formazione</option>
+  </select>
+
+  <select id="taskPriority">
+    <option value="Alta">🔥 Alta</option>
+    <option value="Media" selected>⚡ Media</option>
+    <option value="Bassa">🟢 Bassa</option>
+  </select>
+
+  <input
+    id="taskDuration"
+    type="number"
+    min="5"
+    step="5"
+    value="30"
+    placeholder="Durata (minuti)"
+    required
+  >
+
+  <input
+    id="taskDate"
+    type="date"
+    required
+  >
+
+  <button type="submit">
+    + Aggiungi
+  </button>
+
+</form>
 
       <div class="task-list">
         ${
@@ -224,25 +256,38 @@ function tasksPage() {
 }
 
 function taskHTML(task) {
-  return `
-    <div class="task-item ${task.completed ? "completed" : ""}">
-      <button
-        class="task-check"
-        onclick="toggleTask('${task.id}')"
-      >
-        ${task.completed ? "✓" : ""}
-      </button>
+    return `
+        <div class="task-item ${task.completed ? "completed" : ""}">
+            
+            <button
+                class="task-check"
+                onclick="toggleTask('${task.id}')"
+            >
+                ${task.completed ? "✓" : ""}
+            </button>
 
-      <span>${escapeHTML(task.title)}</span>
+            <div class="task-content">
+                <span class="task-title">
+                    ${escapeHTML(task.title)}
+                </span>
 
-      <button
-        class="task-delete"
-        onclick="deleteTask('${task.id}')"
-      >
-        ×
-      </button>
-    </div>
-  `;
+                <div class="task-meta">
+                    <span>🏷️ ${escapeHTML(task.area || "Personale")}</span>
+                    <span>⚡ ${escapeHTML(task.priority || "Media")}</span>
+                    <span>⏱️ ${task.duration || 30} min</span>
+                    <span>📅 ${task.date || ""}</span>
+                </div>
+            </div>
+
+            <button
+                class="task-delete"
+                onclick="deleteTask('${task.id}')"
+            >
+                ×
+            </button>
+
+        </div>
+    `;
 }
 
 function addTask(event) {
@@ -260,15 +305,20 @@ function addTask(event) {
     return;
   }
 
+const area = document.getElementById("taskArea").value;
+const priority = document.getElementById("taskPriority").value;
+const duration = Number(document.getElementById("taskDuration").value);
+const date = document.getElementById("taskDate").value;
+
 state.tasks.push({
-  id: uid(),
-  title: title,
-  date: today(),
-  completed: false,
-  area: "Personale",
-  priority: "Media",
-  duration: 30,
-  xp: 10
+    id: uid(),
+    title: title,
+    date: date,
+    completed: false,
+    area: area,
+    priority: priority,
+    duration: duration,
+    xp: 10
 });
 
   save();
